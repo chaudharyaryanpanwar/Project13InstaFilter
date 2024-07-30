@@ -15,10 +15,13 @@ struct ContentView: View {
     
     @State private var processedImage : Image?
     @State private var filterIntensity = 0.5
+    @State private var filterScale = 0.5
+    @State private var filterRadius = 0.5
     
     @State private var selecetedItem : PhotosPickerItem?
     
     @State private var currentFilter : CIFilter = CIFilter.sepiaTone()
+    
     
     @State private var showingFilters = false
     
@@ -51,24 +54,62 @@ struct ContentView: View {
                 Button("Sepia Tone"){setFilter(CIFilter.sepiaTone())}
                 Button("Unsharp Mask"){ setFilter(CIFilter.unsharpMask())}
                 Button("Vignette"){ setFilter(CIFilter.vignette())}
+                Button("Thermal"){ setFilter(CIFilter.thermal())}
+                Button("Monochrome"){ setFilter(CIFilter.colorMonochrome())}
+                Button("Document Enhancer"){ setFilter(CIFilter.documentEnhancer())}
+                Button("Bloom"){ setFilter(CIFilter.bloom())}
+                
                 Button("Cancel" , role : .cancel){}
             }
             
             Spacer()
             
-            HStack {
-                Text("Intensity")
-                Slider(value : $filterIntensity)
-                    .onChange(of: filterIntensity) {
-                        applyProcessing()
+            VStack {
+                if currentFilter.inputKeys.contains(kCIInputIntensityKey) {
+                    HStack {
+                        Text("Intensity")
+                            .foregroundStyle(processedImage == nil ? .tertiary : .primary)
+                        Slider(value : $filterIntensity)
+                            .onChange(of: filterIntensity) {
+                                applyProcessing()
+                            }
+                            .disabled(processedImage == nil)
                     }
+                    .padding(.vertical)
+                }
+                
+                if currentFilter.inputKeys.contains(kCIInputScaleKey){
+                    HStack {
+                        Text("Scale")
+                            .foregroundStyle(processedImage == nil ? .tertiary : .primary)
+                        Slider(value : $filterScale)
+                            .onChange(of: filterScale) {
+                                applyProcessing()
+                            }
+                            .disabled(processedImage == nil)
+                    }
+                    .padding(.vertical)
+                }
+                
+                if currentFilter.inputKeys.contains(kCIInputRadiusKey) {
+                    HStack {
+                        Text("Radius")
+                            .foregroundStyle(processedImage == nil ? .tertiary : .primary)
+                        Slider(value : $filterRadius)
+                            .onChange(of: filterRadius) {
+                                applyProcessing()
+                            }
+                            .disabled(processedImage == nil)
+                    }
+                    .padding(.vertical)
+                }
             }
-            .padding(.vertical)
             
             HStack {
                 Button("Change Filter"){
                     changeFilter()
                 }
+                .disabled(processedImage == nil)
                 
                 Spacer()
                 
@@ -104,9 +145,9 @@ struct ContentView: View {
         
         if inputKeys.contains(kCIInputIntensityKey) {currentFilter.setValue(filterIntensity, forKey: kCIInputIntensityKey)}
         
-        if inputKeys.contains(kCIInputRadiusKey){ currentFilter.setValue( filterIntensity * 200 , forKey: kCIInputRadiusKey)}
+        if inputKeys.contains(kCIInputRadiusKey){ currentFilter.setValue( filterRadius * 200 , forKey: kCIInputRadiusKey)}
         
-        if inputKeys.contains(kCIInputScaleKey){ currentFilter.setValue( filterIntensity * 10 , forKey: kCIInputScaleKey)}
+        if inputKeys.contains(kCIInputScaleKey){ currentFilter.setValue( filterScale * 10 , forKey: kCIInputScaleKey)}
         
         guard let outputImage = currentFilter.outputImage else { return }
         guard let cgImage = context.createCGImage(outputImage , from: outputImage.extent ) else { return }
